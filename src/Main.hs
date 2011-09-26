@@ -1,6 +1,10 @@
 import Evolutionary.Parser
 import Evolutionary.Data
 
+
 main :: IO ()
-main = putStrLn $ "Hello World!"
+main = do
+	doc <- parseInput
+	let parsed = fmap (mapToNode . attributesToMap) $ extractNodeAttrs doc
+	putStrLn $ show parsed
 
