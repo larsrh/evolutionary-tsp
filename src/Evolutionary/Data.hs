@@ -39,7 +39,7 @@ calculateCost :: EdgeMap -> [Node] -> Float
 calculateCost costMap nodes = sum costs where
 	costs = map lookup connections
 	lookup connection = Map.findWithDefault err connection costMap
-	connections = zip nodes (tail nodes)
+	connections = zip nodes ((tail nodes) ++ [head nodes])
 	err = error "connection not found"
 
 mkPath :: EdgeMap -> [Node] -> Path
