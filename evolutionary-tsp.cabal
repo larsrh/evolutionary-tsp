@@ -5,6 +5,7 @@ Build-Type:     Simple
 
 Executable tsp
   Main-Is:        Main.hs
+  GHC-Options:    -Wall -O2
   Hs-Source-Dirs: src
   Extensions:
     DeriveDataTypeable
