@@ -3,14 +3,9 @@ module Evolutionary.Algorithm where
 import qualified Data.Map as Map
 import qualified System.Random as Random
 import qualified Data.List as List
-import Evolutionary.Data
+import Control.Monad
 
-calculateCost :: EdgeMap -> [Node] -> Float
-calculateCost costMap nodes = sum costs where
-	costs = map lookup connections
-	lookup connection = Map.findWithDefault err connection costMap
-	connections = zip nodes (tail nodes)
-	err = error "connection not found"
+import Evolutionary.Data
 
 crossOver :: [Node] -> [Node] -> Int -> [Node]
 crossOver p1 p2 i = start ++ end where
@@ -23,9 +18,32 @@ mutation xs i j = start ++ middle ++ end where
 	middle = reverse $ take (j-i) $ drop i xs
 	end = drop j xs
 
-doStuff :: [Node] -> IO [Node]
-doStuff l = do
-	i <- Random.getStdRandom $ Random.randomR (0, length l)
-	j <- Random.getStdRandom $ Random.randomR (0, length l)
-	return $ crossOver l (reverse l) i
-	--return $ mutation l (min i j) (max i j)
+chooseParents :: [Path] -> IO (Path, Path)
+chooseParents xs = do
+	p1 <- pickRandomBest 2 xs
+	p2 <- pickRandomBest 2 xs
+	return (p1, p2)
+
+createChild :: (Path, Path) -> IO [Node]
+createChild (p1, p2) = do
+	let len = length $ nodes p1
+	rnd <- rand 0 len
+	let crossedOver = crossOver (nodes p1) (nodes p2) rnd
+	i <- rand 0 len
+	j <- rand 0 len
+	rnd <- rand 0 100
+	return $ if rnd == 0
+		then mutation crossedOver (min i j) (max i j)
+		else crossedOver
+
+createChildFromPopulation :: [Path] -> IO [Node]
+createChildFromPopulation = chooseParents >=> createChild
+
+createPopulation :: EdgeMap -> [Node] -> Int -> IO [Path]
+createPopulation costMap nodes = create [] where
+	create xs 0 = return xs
+	create xs n = do
+		perm <- randomPermutation nodes
+		let path = mkPath costMap perm
+		create (path : xs) (n - 1)
+

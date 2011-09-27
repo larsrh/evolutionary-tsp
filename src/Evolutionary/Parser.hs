@@ -8,8 +8,6 @@ import Text.XML.HaXml.Types
 
 import Evolutionary.Data
 
-parseInput = fmap (xmlParse "stdin") getContents
-
 attributeValues :: Attribute -> [String]
 attributeValues (_, (AttValue xs)) = mapMaybe f xs where
 	f (Left s) = Just s
@@ -38,4 +36,10 @@ mapToNode m = Node name x y where
 	y = read sy
 	find field = maybe (err field) id $ lookup field m
 	err field = error $ "attribute " ++ field ++ " not found"
+
+parseInput :: IO [Node]
+parseInput = do
+	doc <- fmap (xmlParse "stdin") getContents
+	let nodes = fmap (mapToNode . attributesToMap) $ extractNodeAttrs doc
+	return nodes
 

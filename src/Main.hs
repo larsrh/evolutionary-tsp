@@ -1,12 +1,16 @@
+import Data.List
+import Data.Monoid
+
 import Evolutionary.Parser
 import Evolutionary.Data
 import Evolutionary.Algorithm
-import Data.List
-
 
 main :: IO ()
 main = do
-	doc <- parseInput
-	let parsed = fmap (mapToNode . attributesToMap) $ extractNodeAttrs doc
-	stuffed <- doStuff parsed
-	putStrLn $ show stuffed
+	nodes <- parseInput
+	let costMap = calculateAllEdges nodes
+	population <- createPopulation costMap nodes 50
+	child <- createChildFromPopulation population
+	let shown = intersperse "\n" $ fmap show child
+	putStrLn $ mconcat shown
+
