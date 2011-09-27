@@ -4,6 +4,7 @@ import Data.Monoid
 import Evolutionary.Parser
 import Evolutionary.Data
 import Evolutionary.Algorithm
+import Evolutionary.Graphviz
 
 main :: IO ()
 main = do
@@ -14,5 +15,5 @@ main = do
 	let repeated = iterateM step 500
 	p <- repeated population
 	let best = minimum p
-	putStrLn $ show best 
+	putStrLn $ getGraph best 
 
