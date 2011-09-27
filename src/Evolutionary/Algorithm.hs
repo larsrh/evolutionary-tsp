@@ -24,20 +24,20 @@ chooseParents xs = do
 	p2 <- pickRandomBest 2 xs
 	return (p1, p2)
 
-createChild :: (Path, Path) -> IO [Node]
-createChild (p1, p2) = do
+createChild :: Int -> (Path, Path) -> IO [Node]
+createChild mutationRate (p1, p2) = do
 	let len = length $ nodes p1
 	rnd <- rand 0 len
 	let crossedOver = crossOver (nodes p1) (nodes p2) rnd
 	i <- rand 0 len
 	j <- rand 0 len
 	rnd <- rand 0 100
-	return $ if rnd == 0
+	return $ if rnd < mutationRate
 		then mutation crossedOver (min i j) (max i j)
 		else crossedOver
 
-createChildFromPopulation :: [Path] -> IO [Node]
-createChildFromPopulation = chooseParents >=> createChild
+createChildFromPopulation :: Int -> [Path] -> IO [Node]
+createChildFromPopulation mutationRate = chooseParents >=> (createChild mutationRate)
 
 createPopulation :: EdgeMap -> [Node] -> Int -> IO [Path]
 createPopulation costMap nodes = create [] where
@@ -47,16 +47,16 @@ createPopulation costMap nodes = create [] where
 		let path = mkPath costMap perm
 		create (path : xs) (n - 1)
 
-createChildrenFromPopulation :: EdgeMap -> Int -> [Path] -> IO [Path]
-createChildrenFromPopulation costMap n population = sequence children where
+createChildrenFromPopulation :: EdgeMap -> Int -> Int -> [Path] -> IO [Path]
+createChildrenFromPopulation costMap n mutationRate population = sequence children where
 	children = replicate n child
 	child = do
-		nodes <- createChildFromPopulation population
+		nodes <- createChildFromPopulation mutationRate population
 		return $ mkPath costMap nodes
 
-createNewPopulation :: EdgeMap -> [Node] -> Int -> [Path] -> IO [Path]
-createNewPopulation costMap nodes n population = do
-	children <- createChildrenFromPopulation costMap n population
+createNewPopulation :: EdgeMap -> [Node] -> Int -> Int -> [Path] -> IO [Path]
+createNewPopulation costMap nodes n mutationRate population = do
+	children <- createChildrenFromPopulation costMap n mutationRate population
 	let total = population ++ children
 	let len = length population
 	let best = minUniqueN len total

@@ -15,14 +15,16 @@ data Arguments = Arguments {
 	population :: Int,
 	steps :: Int,
 	mode :: OutputMode,
-	verbose :: Bool
+	verbose :: Bool,
+	mutationRate :: Int
 } deriving (Show, Data, Typeable)
 
 defaults = Arguments {
 	population = 50,
 	steps = 500,
 	mode = Plain,
-	verbose = False
+	verbose = False,
+	mutationRate = 1
 }
 
 main :: IO ()
@@ -31,7 +33,7 @@ main = do
 	nodes <- parseInput
 	let costMap = calculateAllEdges nodes
 	let step p count = do
-		p' <- createNewPopulation costMap nodes (population args) p
+		p' <- createNewPopulation costMap nodes (population args) (mutationRate args) p
 		if verbose args
 			then putStrLn $ show count ++ ":\t" ++ show (minimum p')
 			else return ()
