@@ -1,8 +1,4 @@
-import Data.List
-import Data.Monoid
 import System.Console.CmdArgs
-import System.Environment
-import IO
 
 import Evolutionary.Parser
 import Evolutionary.Data
@@ -19,6 +15,7 @@ data Arguments = Arguments {
 	mutationRate :: Int
 } deriving (Show, Data, Typeable)
 
+defaults :: Arguments
 defaults = Arguments {
 	population = 50,
 	steps = 500,
@@ -29,19 +26,19 @@ defaults = Arguments {
 
 main :: IO ()
 main = do
-	args <- cmdArgs defaults
+	arguments <- cmdArgs defaults
 	nodes <- parseInput
 	let costMap = calculateAllEdges nodes
 	let step p count = do
-		p' <- createNewPopulation costMap nodes (population args) (mutationRate args) p
-		if verbose args
+		p' <- createNewPopulation costMap nodes (population arguments) (mutationRate arguments) p
+		if verbose arguments
 			then putStrLn $ show count ++ ":\t" ++ show (minimum p')
 			else return ()
 		return p'
-	let repeated = iterateM step (steps args)
-	init <- createPopulation costMap nodes (population args)
-	p <- repeated init
+	let repeated = iterateM step (steps arguments)
+	initialPopulation <- createPopulation costMap nodes (population arguments)
+	p <- repeated initialPopulation
 	let best = minimum p
-	if mode args == GraphViz
+	if mode arguments == GraphViz
 		then putStrLn $ getGraph best
 		else putStrLn $ show best

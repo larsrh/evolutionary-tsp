@@ -3,8 +3,6 @@ module Evolutionary.Parser where
 import Data.List
 import Data.Maybe
 import Text.XML.HaXml
-import Text.XML.HaXml.Combinators
-import Text.XML.HaXml.Types
 
 import Evolutionary.Data
 
@@ -14,14 +12,14 @@ attributeValues (_, (AttValue xs)) = mapMaybe f xs where
 	f _ = Nothing
 
 extractNodeAttrs :: Document a -> [[Attribute]]
-extractNodeAttrs (Document _ _ (Elem _ _ children) _) = mapMaybe f children where
+extractNodeAttrs (Document _ _ (Elem _ _ xs) _) = mapMaybe f xs where
 	f (CElem (Elem name attrs _) _) | name == "node" = Just attrs
 	f _ = Nothing
 
 attributesToMap :: [Attribute] -> [(String, String)]
 attributesToMap xs = map f xs where
 	f :: Attribute -> (String, String)
-	f attr = (fst attr, attributeValues attr !! 0)
+	f attribute = (fst attribute, attributeValues attribute !! 0)
 
 splitAtChar :: String -> Char -> (String, String)
 splitAtChar str c = splitAt index str where
@@ -39,7 +37,6 @@ mapToNode m = Node name x y where
 
 parseInput :: IO [Node]
 parseInput = do
-	doc <- fmap (xmlParse "stdin") getContents
-	let nodes = fmap (mapToNode . attributesToMap) $ extractNodeAttrs doc
-	return nodes
+	doc <- fmap (extractNodeAttrs . xmlParse "stdin") getContents
+	return $ fmap (mapToNode . attributesToMap) doc
 

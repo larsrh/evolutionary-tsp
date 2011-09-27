@@ -1,7 +1,5 @@
 module Evolutionary.Algorithm where
 
-import qualified Data.Map as Map
-import qualified System.Random as Random
 import qualified Data.List as List
 import Control.Monad
 
@@ -31,8 +29,8 @@ createChild mutationRate (p1, p2) = do
 	let crossedOver = crossOver (nodes p1) (nodes p2) rnd
 	i <- rand 0 len
 	j <- rand 0 len
-	rnd <- rand 0 100
-	return $ if rnd < mutationRate
+	rnd' <- rand 0 100
+	return $ if rnd' < mutationRate
 		then mutation crossedOver (min i j) (max i j)
 		else crossedOver
 
@@ -40,29 +38,27 @@ createChildFromPopulation :: Int -> [Path] -> IO [Node]
 createChildFromPopulation mutationRate = chooseParents >=> (createChild mutationRate)
 
 createPopulation :: EdgeMap -> [Node] -> Int -> IO [Path]
-createPopulation costMap nodes = create [] where
+createPopulation costMap ns = create [] where
 	create xs 0 = return xs
 	create xs n = do
-		perm <- randomPermutation nodes
+		perm <- randomPermutation ns
 		let path = mkPath costMap perm
 		create (path : xs) (n - 1)
 
 createChildrenFromPopulation :: EdgeMap -> Int -> Int -> [Path] -> IO [Path]
 createChildrenFromPopulation costMap n mutationRate population = sequence children where
 	children = replicate n child
-	child = do
-		nodes <- createChildFromPopulation mutationRate population
-		return $ mkPath costMap nodes
+	child = fmap (mkPath costMap) $ createChildFromPopulation mutationRate population
 
 createNewPopulation :: EdgeMap -> [Node] -> Int -> Int -> [Path] -> IO [Path]
-createNewPopulation costMap nodes n mutationRate population = do
+createNewPopulation costMap ns n mutationRate population = do
 	children <- createChildrenFromPopulation costMap n mutationRate population
 	let total = population ++ children
 	let len = length population
 	let best = minUniqueN len total
 	let newLen = length best
 	add <- if newLen < len
-		then createPopulation costMap nodes (newLen - len) 
+		then createPopulation costMap ns (newLen - len) 
 		else return []
 	return $ best ++ add
 
