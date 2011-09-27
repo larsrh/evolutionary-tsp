@@ -10,7 +10,9 @@ main = do
 	nodes <- parseInput
 	let costMap = calculateAllEdges nodes
 	population <- createPopulation costMap nodes 50
-	child <- createChildFromPopulation population
-	let shown = intersperse "\n" $ fmap show child
-	putStrLn $ mconcat shown
+	let step = createNewPopulation costMap nodes 50
+	let repeated = iterateM step 500
+	p <- repeated population
+	let best = minimum p
+	putStrLn $ show best 
 

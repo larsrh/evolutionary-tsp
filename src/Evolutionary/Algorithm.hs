@@ -47,3 +47,22 @@ createPopulation costMap nodes = create [] where
 		let path = mkPath costMap perm
 		create (path : xs) (n - 1)
 
+createChildrenFromPopulation :: EdgeMap -> Int -> [Path] -> IO [Path]
+createChildrenFromPopulation costMap n population = sequence children where
+	children = replicate n child
+	child = do
+		nodes <- createChildFromPopulation population
+		return $ mkPath costMap nodes
+
+createNewPopulation :: EdgeMap -> [Node] -> Int -> [Path] -> IO [Path]
+createNewPopulation costMap nodes n population = do
+	children <- createChildrenFromPopulation costMap n population
+	let total = population ++ children
+	let len = length population
+	let best = minUniqueN len total
+	let newLen = length best
+	add <- if newLen < len
+		then createPopulation costMap nodes (newLen - len) 
+		else return []
+	return $ best ++ add
+

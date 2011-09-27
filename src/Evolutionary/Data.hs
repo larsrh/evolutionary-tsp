@@ -2,7 +2,9 @@ module Evolutionary.Data where
 
 import qualified Data.Map as Map
 import qualified System.Random as Random
+import Data.List
 import Data.Monoid
+import Control.Monad
 
 data Node = Node String Float Float deriving (Show, Eq, Ord)
 
@@ -11,13 +13,17 @@ type EdgeMap = Map.Map (Node, Node) Float
 data Path = Path {
 	nodes :: [Node],
 	cost :: Float
-} deriving (Show)
-
-instance Eq Path where
-	xs == ys = (cost xs) == (cost ys)
+} deriving (Eq)
 
 instance Ord Path where
-	compare xs ys = compare (cost xs) (cost ys)
+	compare xs ys =	if o == EQ
+		then compare (nodes xs) (nodes ys)
+		else o where
+		o = compare (cost xs) (cost ys) 
+
+instance Show Path where
+	show path = mconcat (intersperse "→" (map getName $ nodes path)) ++ " : " ++ show (cost path) where 
+		getName (Node name _ _) = name
 
 distance :: Node -> Node -> Float
 distance (Node _ x1 y1) (Node _ x2 y2) = sqrt $ (x1 - x2) ^ 2 + (y1 - y2) ^ 2
@@ -45,7 +51,7 @@ mkPath costMap xs = Path {
 pickRandomBest :: Ord a => Int -> [a] -> IO a
 pickRandomBest num xs = do
 	picked <- choose [] num
-	return $ maximum picked where
+	return $ minimum picked where
 	len = length xs
 	choose ys 0 = return ys
 	choose ys n = do
@@ -63,4 +69,13 @@ randomPermutation (x : xs) = do
     rest <- randomPermutation xs
     return $ let (ys,zs) = splitAt rand rest
              in ys++(x:zs)
+
+minUniqueN :: Ord a => Int -> [a] -> [a]
+minUniqueN n xs = take n (nub $ sortBy compare xs)
+
+iterateM :: Monad m => (a -> m a) -> Int -> a -> m a
+iterateM f 0 a = f a
+iterateM f n a = do
+	r <- f a
+	iterateM f (n-1) r
 
