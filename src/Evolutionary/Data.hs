@@ -65,17 +65,18 @@ rand min max = Random.getStdRandom $ Random.randomR (min, max)
 randomPermutation :: [a] -> IO [a]
 randomPermutation [] = return []
 randomPermutation (x : xs) = do
-    rand <- rand 0 $ length xs
-    rest <- randomPermutation xs
-    return $ let (ys,zs) = splitAt rand rest
-             in ys++(x:zs)
+	rand <- rand 0 $ length xs
+	rest <- randomPermutation xs
+	let (ys, zs) = splitAt rand rest
+	return $ ys ++ (x : zs)
 
 minUniqueN :: Ord a => Int -> [a] -> [a]
 minUniqueN n xs = take n (nub $ sortBy compare xs)
 
-iterateM :: Monad m => (a -> m a) -> Int -> a -> m a
-iterateM f 0 a = f a
-iterateM f n a = do
-	r <- f a
-	iterateM f (n-1) r
+iterateM :: Monad m => (a -> Int -> m a) -> Int -> a -> m a
+iterateM f n a = iter a n 0 where
+	iter a 0 count = f a count
+	iter a n count = do
+		r <- f a count
+		iter r (n-1) (count+1)
 

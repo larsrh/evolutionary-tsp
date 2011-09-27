@@ -30,10 +30,10 @@ main = do
 	args <- cmdArgs defaults
 	nodes <- parseInput
 	let costMap = calculateAllEdges nodes
-	let step p = do
+	let step p count = do
 		p' <- createNewPopulation costMap nodes (population args) p
 		if verbose args
-			then putStrLn $ show (minimum p')
+			then putStrLn $ show count ++ ":\t" ++ show (minimum p')
 			else return ()
 		return p'
 	let repeated = iterateM step (steps args)
