@@ -24,8 +24,25 @@ instance Show Path where
 	show path = mconcat (intersperse "→" (map getName $ nodes path)) ++ " : " ++ show (cost path) where 
 		getName (Node name _ _) = name
 
+degToRad :: Float -> Float
+degToRad x = rad where
+	deg = fromInteger $ round x
+	m = x - deg
+	rad = pi * (deg + 5.0 * m / 3.0) / 180.0
+	round x = floor $ x + 0.5
+
+latLon :: (Float, Float) -> (Float, Float)
+latLon (x, y) = (degToRad x, degToRad y)
+
 distance :: Node -> Node -> Float
-distance (Node _ x1 y1) (Node _ x2 y2) = sqrt $ (x1 - x2) ^ (2 :: Int) + (y1 - y2) ^ (2 :: Int)
+distance (Node _ x1 y1) (Node _ x2 y2) = (fromInteger . floor) $ rrr * acos val + 1.0 where
+	(lat1, lon1) = latLon (x1, y1)
+	(lat2, lon2) = latLon (x2, y2)
+	rrr = 6378.388
+	q1 = cos $ lon1 - lon2
+	q2 = cos $ lat1 - lat2
+	q3 = cos $ lat1 + lat2
+	val = 0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)
 
 calculateEdges :: [Node] -> Node -> EdgeMap
 calculateEdges xs n = Map.fromList $ map (f n) xs where
