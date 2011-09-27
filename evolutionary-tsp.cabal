@@ -6,6 +6,8 @@ Build-Type:     Simple
 Executable tsp
   Main-Is:        Main.hs
   Hs-Source-Dirs: src
+  Extensions:
+    DeriveDataTypeable
   Other-Modules:
     Evolutionary.Parser,
     Evolutionary.Data,
@@ -15,4 +17,5 @@ Executable tsp
     base >= 4 && < 5,
     containers >= 0.4,
     HaXml >= 1.20,
-    random >= 1.0.0.2
+    random >= 1.0.0.2,
+    cmdargs >= 0.8
